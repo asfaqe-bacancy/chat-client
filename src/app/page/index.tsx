@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from 'react';
-import { useSocket } from './context/SocketContext';
-import Login from './components/Login';
-import { Sidebar } from './components/Sidebar';
-import { ChatContainer } from './components/ChatContainer';
+import Head from 'next/head';
+import { useSocket } from '../context/SocketContext';
+import Login from '../components/Login';
+import { Sidebar } from '../components/Sidebar';
+import { ChatContainer } from '../components/ChatContainer';
 
 export default function Home() {
   const { isConnected, username } = useSocket();
