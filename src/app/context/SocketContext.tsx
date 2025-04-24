@@ -17,6 +17,7 @@ export type ChatMessage = {
   group?: string;
   message: string;
   timestamp: string;
+  type: 'private' | 'group' | 'notification';
 };
 
 type SocketContextType = {
@@ -77,9 +78,10 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       console.log("Private message received:", message);
       const messageWithId = {
         ...message, 
-        id: generateMessageId()
+        id: generateMessageId(),
+        type: 'private'
       };
-      setMessages((prev) => [...prev, messageWithId]);
+      setMessages((prev) => [...prev, messageWithId as ChatMessage]);
     });
 
     // Listen for groupMessage events
@@ -87,9 +89,10 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       console.log("Group message received:", message);
       const messageWithId = {
         ...message, 
-        id: generateMessageId()
+        id: generateMessageId(),
+        type: 'group'
       };
-      setMessages((prev) => [...prev, messageWithId]);
+      setMessages((prev) => [...prev, messageWithId as ChatMessage]);
     });
 
     // Listen for groupNotification events
@@ -131,19 +134,20 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const currentSocket = socketRef.current;
     if (currentSocket && currentSocket.connected) {
       const message = { to: receiver, message: content };
-      currentSocket.emit('privateMessage', message, (response: any) => {
+      currentSocket.emit("privateMessage", message, (response: any) => {
         // Only add message to state if server confirms success
-        if (response.success) {
+        if (response && response.success) {
           const newMessage: ChatMessage = {
             id: generateMessageId(),
             from: username,
             to: receiver,
             message: content,
             timestamp: new Date().toISOString(),
+            type: 'private'
           };
           setMessages(prev => [...prev, newMessage]);
         } else {
-          console.error('Failed to send message:', response.message);
+          console.error('Failed to send message:', response?.message || 'Unknown error');
         }
       });
     }
@@ -162,6 +166,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             group: group,
             message: content,
             timestamp: new Date().toISOString(),
+            type: 'group'
           };
           setMessages(prev => [...prev, newMessage]);
         } else {
@@ -211,7 +216,6 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const currentSocket = socketRef.current;
     if (currentSocket && currentSocket.connected) {
       currentSocket.emit("getUsers", (response: { users: string[] }) => {
-        console.log('Received users:', response.users);
         setUsers(response.users);
       });
     }
@@ -221,7 +225,6 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const currentSocket = socketRef.current;
     if (currentSocket && currentSocket.connected) {
       currentSocket.emit("getGroups", (response: { groups: Group[] }) => {
-        console.log('Received groups:', response.groups);
         setGroups(response.groups);
       });
     }

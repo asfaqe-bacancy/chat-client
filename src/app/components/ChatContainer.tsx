@@ -58,13 +58,14 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({ selectedChat }) =>
     
     if (selectedChat.type === 'private') {
       return (
-        (message.type === 'private-received' && message.from === selectedChat.name) ||
-        (message.type === 'private-sent' && message.to === selectedChat.name)
+        (message.from === selectedChat.name && message.to === username) ||
+        (message.from === username && message.to === selectedChat.name)
       );
     } else {
       return (
-        (message.type === 'group' && message.group === selectedChat.name) ||
-        (message.type === 'notification' && message.group === selectedChat.name)
+          (message.group === selectedChat.name) ||
+        (message.type === 'notification' && message.group === selectedChat.name) ||
+        (message.group === selectedChat.name)
       );
     }
   });

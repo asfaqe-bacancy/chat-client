@@ -24,11 +24,19 @@ const Chat: React.FC<ChatProps> = ({ activeChat, chatType }) => {
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
-
+    console.log("Send button clicked");
+    if (!newMessage.trim()) {
+      console.log("Message is empty, not sending");
+      return;
+    }
+  
+    console.log(`Sending message to ${activeChat}: ${newMessage}`);
+    
     if (chatType === 'private') {
+      console.log("Sending private message");
       sendPrivateMessage(activeChat, newMessage);
     } else {
+      console.log("Sending group message");
       sendGroupMessage(activeChat, newMessage);
     }
     

@@ -20,6 +20,11 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, username }) 
     scrollToBottom();
   }, [messages]);
 
+  const formatTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
   return (
     <div className="flex-1 p-4 overflow-y-auto">
       {messages.length === 0 ? (
@@ -29,7 +34,27 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, username }) 
       ) : (
         <>
           {messages.map((message) => (
-            <ChatMessageItem key={message.id} message={message} currentUsername={username} />
+            <div key={message.id} className={`flex w-full mb-4 ${
+              message.from === username ? 'justify-end' : 'justify-start'
+            }`}>
+              <div className={`flex flex-col max-w-xs mx-2 rounded-lg px-3 py-2 ${
+                message.from === username 
+                  ? 'bg-blue-500 text-white' 
+                  : 'bg-gray-100'
+              }`}>
+                <span className={`text-xs ${
+                  message.from === username ? 'text-blue-100' : 'text-gray-500'
+                }`}>
+                  {message.from}
+                </span>
+                <p className="text-sm">{message.message}</p>
+                <span className={`text-xs self-end mt-1 ${
+                  message.from === username ? 'text-blue-200' : 'text-gray-400'
+                }`}>
+                  {formatTime(message.timestamp)}
+                </span>
+              </div>
+            </div>
           ))}
           <div ref={messagesEndRef} />
         </>
