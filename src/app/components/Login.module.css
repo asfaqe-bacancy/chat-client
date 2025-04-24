@@ -1,0 +1,73 @@
+.loginContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f5f7fb;
+}
+
+.loginCard {
+  width: 100%;
+  max-width: 400px;
+  padding: 40px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.title {
+  color: #4a69bd;
+  margin-bottom: 10px;
+  font-size: 2rem;
+}
+
+.subtitle {
+  color: #666;
+  margin-bottom: 30px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+}
+
+.input {
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  margin-bottom: 15px;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #4a69bd;
+}
+
+.error {
+  color: #e74c3c;
+  margin-bottom: 15px;
+  font-size: 0.9rem;
+}
+
+.button {
+  padding: 15px;
+  background-color: #4a69bd;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.button:hover:not(:disabled) {
+  background-color: #3a559c;
+}
+
+.button:disabled {
+  background-color: #a0aec0;
+  cursor: not-allowed;
+}

@@ -166,3 +166,161 @@ a.secondary {
     filter: invert();
   }
 }
+
+.container {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 1.2rem;
+  color: #4a69bd;
+}
+
+.sidebar {
+  width: 300px;
+  background-color: white;
+  border-right: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+}
+
+.userInfo {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  background-color: #4a69bd;
+  color: white;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #fff;
+  color: #4a69bd;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+  margin-right: 12px;
+}
+
+.username h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.onlineStatus {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid #ddd;
+}
+
+.tabButton {
+  flex: 1;
+  padding: 15px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  color: #666;
+  transition: all 0.2s;
+}
+
+.activeTab {
+  color: #4a69bd;
+  border-bottom: 2px solid #4a69bd;
+}
+
+.chatList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.chatItem {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-bottom: 5px;
+}
+
+.chatItem:hover {
+  background-color: #f5f7fb;
+}
+
+.active {
+  background-color: #f0f4ff;
+}
+
+.chatAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #4a69bd;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  margin-right: 12px;
+}
+
+.chatInfo {
+  flex: 1;
+}
+
+.chatName {
+  font-weight: 500;
+}
+
+.memberCount {
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: 2px;
+}
+
+.emptyList {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+  color: #888;
+  font-style: italic;
+}
+
+.chatArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.noChatSelected {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: #666;
+  background-color: #f5f7fb;
+}
+
+.noChatSelected h2 {
+  margin-bottom: 10px;
+  color: #4a69bd;
+}

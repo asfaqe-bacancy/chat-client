@@ -131,17 +131,21 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const currentSocket = socketRef.current;
     if (currentSocket && currentSocket.connected) {
       const message = { to: receiver, message: content };
-      currentSocket.emit("privateMessage", message);
-      
-      // Add the sent message to our messages state
-      const newMessage: ChatMessage = {
-        id: generateMessageId(),
-        from: username,
-        to: receiver,
-        message: content,
-        timestamp: new Date().toISOString(),
-      };
-      setMessages(prev => [...prev, newMessage]);
+      currentSocket.emit('privateMessage', message, (response: any) => {
+        // Only add message to state if server confirms success
+        if (response.success) {
+          const newMessage: ChatMessage = {
+            id: generateMessageId(),
+            from: username,
+            to: receiver,
+            message: content,
+            timestamp: new Date().toISOString(),
+          };
+          setMessages(prev => [...prev, newMessage]);
+        } else {
+          console.error('Failed to send message:', response.message);
+        }
+      });
     }
   };
 
@@ -149,17 +153,21 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const currentSocket = socketRef.current;
     if (currentSocket && currentSocket.connected) {
       const message = { group, message: content };
-      currentSocket.emit("groupMessage", message);
-      
-      // Add the sent message to our messages state
-      const newMessage: ChatMessage = {
-        id: generateMessageId(),
-        from: username,
-        group: group,
-        message: content,
-        timestamp: new Date().toISOString(),
-      };
-      setMessages(prev => [...prev, newMessage]);
+      currentSocket.emit('groupMessage', message, (response: any) => {
+        // Only add message to state if server confirms success
+        if (response.success) {
+          const newMessage: ChatMessage = {
+            id: generateMessageId(),
+            from: username,
+            group: group,
+            message: content,
+            timestamp: new Date().toISOString(),
+          };
+          setMessages(prev => [...prev, newMessage]);
+        } else {
+          console.error('Failed to send message:', response.message);
+        }
+      });
     }
   };
 
