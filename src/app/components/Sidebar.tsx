@@ -1,7 +1,7 @@
 "use client";
 
 // components/Sidebar.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSocket } from '../context/SocketContext';
 import { FaUser, FaUsers } from 'react-icons/fa';
 
@@ -11,9 +11,22 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ onSelectPrivateChat, onSelectGroupChat }) => {
-  const { users, groups, joinGroup } = useSocket();
+  const { users, groups, joinGroup, getUsers, getGroups } = useSocket();
   const [newGroupName, setNewGroupName] = useState('');
   const [activeTab, setActiveTab] = useState<'users' | 'groups'>('users');
+
+  // Fetch users and groups when component mounts
+  useEffect(() => {
+    getUsers();
+    getGroups();
+    
+    // Refresh users list every 10 seconds
+    const intervalId = setInterval(() => {
+      getUsers();
+    }, 10000);
+    
+    return () => clearInterval(intervalId);
+  }, [getUsers, getGroups]);
 
   const handleJoinGroup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,6 +36,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSelectPrivateChat, onSelectG
     if (result.success) {
       setNewGroupName('');
       onSelectGroupChat(newGroupName);
+      // Refresh groups list
+      getGroups();
     } else {
       alert(result.message);
     }
@@ -70,17 +85,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSelectPrivateChat, onSelectG
             <p className="text-sm text-gray-500">No users online</p>
           ) : (
             <ul className="space-y-1">
-              {users.map((user) => (
-                <li key={user}>
+              {users.map((username) => (
+                <li key={username}>
                   <button
-                    onClick={() => onSelectPrivateChat(user)}
+                    onClick={() => onSelectPrivateChat(username)}
                     className="w-full flex items-center px-3 py-2 text-sm text-gray-700 rounded-md hover:bg-gray-100"
                   >
                     <div className="flex-shrink-0 h-8 w-8 bg-gray-200 rounded-full flex items-center justify-center">
-                      {user.charAt(0).toUpperCase()}
+                      {username.charAt(0).toUpperCase()}
                     </div>
                     <div className="ml-3 text-left">
-                      <p className="font-medium">{user}</p>
+                      <p className="font-medium">{username}</p>
                     </div>
                   </button>
                 </li>

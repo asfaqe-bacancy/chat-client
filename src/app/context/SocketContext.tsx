@@ -3,23 +3,20 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
-type User = {
-  id: string;
-  username: string;
-  isSocketReady?: boolean;
-};
-
-type Message = {
-  id: string;
-  sender: string;
-  receiver?: string;
-  group?: string;
-  content: string;
-};
+type User = string;
 
 type Group = {
-  id: string;
   name: string;
+  memberCount?: number;
+};
+
+export type ChatMessage = {
+  id: string;
+  from: string;
+  to?: string;
+  group?: string;
+  message: string;
+  timestamp: string;
 };
 
 type SocketContextType = {
@@ -29,12 +26,12 @@ type SocketContextType = {
   username: string;
   users: User[];
   groups: Group[];
-  messages: Message[];
+  messages: ChatMessage[];
   register: (username: string) => Promise<{ success: boolean; message: string }>;
   sendPrivateMessage: (receiver: string, content: string) => void;
   sendGroupMessage: (group: string, content: string) => void;
-  joinGroup: (group: string) => void;
-  leaveGroup: (group: string) => void;
+  joinGroup: (group: string) => Promise<{ success: boolean; message: string }>;
+  leaveGroup: (group: string) => Promise<{ success: boolean; message: string }>;
   getUsers: () => void;
   getGroups: () => void;
 };
@@ -56,7 +53,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [username, setUsername] = useState("");
   const [users, setUsers] = useState<User[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
 
   useEffect(() => {
     const socketInstance = io("http://localhost:3132");
@@ -75,25 +72,40 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setIsSocketReady(false);
     });
 
-    socketInstance.on("update_users", (updatedUsers: User[]) => {
-      console.log("Users updated:", updatedUsers);
-      setUsers(updatedUsers);
+    // Listen for privateMessage events
+    socketInstance.on("privateMessage", (message: ChatMessage) => {
+      console.log("Private message received:", message);
+      const messageWithId = {
+        ...message, 
+        id: generateMessageId()
+      };
+      setMessages((prev) => [...prev, messageWithId]);
     });
 
-    socketInstance.on("update_groups", (updatedGroups: Group[]) => {
-      console.log("Groups updated:", updatedGroups);
-      setGroups(updatedGroups);
+    // Listen for groupMessage events
+    socketInstance.on("groupMessage", (message: ChatMessage) => {
+      console.log("Group message received:", message);
+      const messageWithId = {
+        ...message, 
+        id: generateMessageId()
+      };
+      setMessages((prev) => [...prev, messageWithId]);
     });
 
-    socketInstance.on("receive_message", (message: Message) => {
-      console.log("New message received:", message);
-      setMessages((prev) => [...prev, message]);
+    // Listen for groupNotification events
+    socketInstance.on("groupNotification", (notification) => {
+      console.log("Group notification:", notification);
+      // Handle group notifications if needed
     });
 
     return () => {
       socketInstance.disconnect();
     };
   }, []);
+
+  const generateMessageId = () => {
+    return Math.random().toString(36).substring(2, 15);
+  };
 
   const register = (username: string) => {
     return new Promise<{ success: boolean; message: string }>((resolve) => {
@@ -106,6 +118,9 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       currentSocket.emit("register", username, (response: { success: boolean; message: string }) => {
         if (response.success) {
           setUsername(username);
+          // Fetch users and groups after successful registration
+          getUsers();
+          getGroups();
         }
         resolve(response);
       });
@@ -115,42 +130,92 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const sendPrivateMessage = (receiver: string, content: string) => {
     const currentSocket = socketRef.current;
     if (currentSocket && currentSocket.connected) {
-      currentSocket.emit("privateMessage", { to: receiver, message: content });
+      const message = { to: receiver, message: content };
+      currentSocket.emit("privateMessage", message);
+      
+      // Add the sent message to our messages state
+      const newMessage: ChatMessage = {
+        id: generateMessageId(),
+        from: username,
+        to: receiver,
+        message: content,
+        timestamp: new Date().toISOString(),
+      };
+      setMessages(prev => [...prev, newMessage]);
     }
   };
 
   const sendGroupMessage = (group: string, content: string) => {
     const currentSocket = socketRef.current;
     if (currentSocket && currentSocket.connected) {
-      currentSocket.emit("groupMessage", { group, message: content });
+      const message = { group, message: content };
+      currentSocket.emit("groupMessage", message);
+      
+      // Add the sent message to our messages state
+      const newMessage: ChatMessage = {
+        id: generateMessageId(),
+        from: username,
+        group: group,
+        message: content,
+        timestamp: new Date().toISOString(),
+      };
+      setMessages(prev => [...prev, newMessage]);
     }
   };
 
   const joinGroup = (group: string) => {
-    const currentSocket = socketRef.current;
-    if (currentSocket && currentSocket.connected) {
-      currentSocket.emit("joinGroup", group);
-    }
+    return new Promise<{ success: boolean; message: string }>((resolve) => {
+      const currentSocket = socketRef.current;
+      if (!currentSocket || !currentSocket.connected) {
+        resolve({ success: false, message: "Socket not connected. Please try again." });
+        return;
+      }
+
+      currentSocket.emit("joinGroup", group, (response: { success: boolean; message: string }) => {
+        if (response.success) {
+          // Refresh groups after joining
+          getGroups();
+        }
+        resolve(response);
+      });
+    });
   };
 
   const leaveGroup = (group: string) => {
-    const currentSocket = socketRef.current;
-    if (currentSocket && currentSocket.connected) {
-      currentSocket.emit("leaveGroup", group);
-    }
+    return new Promise<{ success: boolean; message: string }>((resolve) => {
+      const currentSocket = socketRef.current;
+      if (!currentSocket || !currentSocket.connected) {
+        resolve({ success: false, message: "Socket not connected. Please try again." });
+        return;
+      }
+
+      currentSocket.emit("leaveGroup", group, (response: { success: boolean; message: string }) => {
+        if (response.success) {
+          // Refresh groups after leaving
+          getGroups();
+        }
+        resolve(response);
+      });
+    });
   };
 
   const getUsers = () => {
     const currentSocket = socketRef.current;
     if (currentSocket && currentSocket.connected) {
-      currentSocket.emit("getUsers");
+      currentSocket.emit("getUsers", (response: { users: string[] }) => {
+        console.log('Received users:', response.users);
+        setUsers(response.users);
+      });
     }
   };
 
   const getGroups = () => {
     const currentSocket = socketRef.current;
     if (currentSocket && currentSocket.connected) {
-      currentSocket.emit("getGroups");
+      currentSocket.emit("getGroups", (response: { groups: Group[] }) => {
+        console.log('Received groups:', response.groups);
+        setGroups(response.groups);
+      });
     }
   };
 
